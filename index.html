@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片相似度算法</title>
+    <style>
+        .box {
+            display: flex;
+            align-items: center;
+        }
+
+        .preview,.compress{
+            display: block;
+            width: 200px;
+            height: 200px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div class="box">
+            <p>图片1</p>
+            <input type="file" id="file1" />
+            <p>压缩前</p>
+            <img src="" alt="" class="preview">
+            <p>压缩后</p>
+            <img src="" alt="" class="compress">
+        </div>
+        <div class="box">
+            <p>图片2</p>
+            <input type="file" id="file2" />
+            <p>压缩前</p>
+            <img src="" alt="" class="preview">
+            <p>压缩后</p>
+            <img src="" alt="" class="compress">
+        </div>
+    </div>
+</body>
+<script>
+    const preview1 = document.getElementsByClassName('preview')[0];
+    const preview2 = document.getElementsByClassName('preview')[1];
+    const compress1 = document.getElementsByClassName('compress')[0];
+    const compress2 = document.getElementsByClassName('compress')[1];
+    const file1 = document.getElementById('file1');
+    const file2 = document.getElementById('file2');
+    file1.onchange = (e) => {
+        readFile(file1.files[0])
+            .then(r => {
+                preview1.src = r;
+                return compressImage(r)
+            })
+            .then(r=>{
+                compress1.src = r
+            })
+    }
+    file2.onchange = (e) => {
+        readFile(file2.files[0])
+            .then(r => {
+                preview2.src = r;
+                return compressImage(r)
+            })
+            .then(r=>{
+                compress2.src = r
+            })
+    }
+    //读取本地文件返回 src
+    function readFile(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.addEventListener("load", function () {
+                resolve(reader.result);
+            }, false)
+        })
+    }
+    //压缩文件
+    function compressImage(imgSrc, imgWidth = 16) {
+        return new Promise((resolve, reject) => {
+            if (!imgSrc) {
+                reject('imgSrc can not be empty!')
+            }
+            const canvas = document.createElement('canvas')
+            const ctx = canvas.getContext('2d')
+            const img = new Image()
+            img.crossOrigin = 'Anonymous'
+            img.src = imgSrc
+            img.onload = function () {
+                canvas.width = imgWidth
+                canvas.height = imgWidth
+                ctx.drawImage(img, 0, 0, imgWidth, imgWidth)
+                const imgaeData = ctx.getImageData(0, 0, imgWidth, imgWidth)
+                resolve(canvas.toDataURL())
+            }
+        })
+    }
+</script>
+
+</html>
