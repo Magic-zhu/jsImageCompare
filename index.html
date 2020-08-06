@@ -43,6 +43,12 @@
             <p>灰度图</p>
             <img src="" alt="" class="grey">
         </div>
+        <div>
+            <button id="btn">比较</button>
+        </div>
+        <div>
+            图片相似度<span id='similarity'></span>
+        </div>
     </div>
 </body>
 <script>
@@ -54,6 +60,9 @@
     const grey2 = document.getElementsByClassName('grey')[1];
     const file1 = document.getElementById('file1');
     const file2 = document.getElementById('file2');
+    const btn = document.getElementById('btn');
+    const similarity = document.getElementById('similarity');
+    let str1,str2;
     file1.onchange = (e) => {
         readFile(file1.files[0])
             .then(r => {
@@ -61,11 +70,10 @@
                 return compressImage(r)
             })
             .then(r => {
-                compress1.src = r.dataUrl
-                // console.log(r.imageData)
-                let info = grayImage(r.imageData)
-                grey1.src = info.dataUrl
-                console.log(HashFingerprint(info.imageData))
+                compress1.src = r.dataUrl;
+                let info = grayImage(r.imageData);
+                grey1.src = info.dataUrl;
+                str1 = HashFingerprint(info.imageData)               
             })
     }
     file2.onchange = (e) => {
@@ -75,8 +83,16 @@
                 return compressImage(r)
             })
             .then(r => {
-                compress2.src = r.dataUrl
+                compress2.src = r.dataUrl;
+                let info = grayImage(r.imageData);
+                grey2.src = info.dataUrl;
+                str2 = HashFingerprint(info.imageData);  
             })
+    }
+    btn.onclick = () =>{
+        let hm = getHm(str1,str2);
+        let si = getSimilarity(str1.length,hm)+'%';
+        similarity.innerText = si
     }
     //读取本地文件返回 src
     function readFile(file) {
@@ -156,6 +172,7 @@
         return createImageData(newData);
     }
 
+    //特征指纹
     function HashFingerprint(imageData) {
         const grayList = imageData.data.reduce((pre, cur, index) => {
             if ((index + 1) % 4 === 0) {
@@ -166,6 +183,23 @@
         const length = grayList.length
         const grayAverage = grayList.reduce((pre, next) => (pre + next), 0) / length
         return grayList.map(gray => (gray >= grayAverage ? 1 : 0)).join('')
+    }
+
+    //汉明距离
+    function getHm(str1,str2){
+        let distance=0;
+        let len = str1.length;
+        for(let i=0;i<len;i++){
+            if(str1[i]!=str2[i]){
+                distance++;
+            }
+        }
+        return distance
+    }
+
+    //相似度
+    function getSimilarity(strLen,hm){
+        return parseInt((strLen - hm)/strLen*100)
     }
 </script>
 
